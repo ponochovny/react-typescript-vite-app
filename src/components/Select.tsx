@@ -3,7 +3,7 @@ import styled from 'styled-components'
 
 type SelectOption = {
 	label: string
-	value: any
+	value: string | number
 }
 
 type SelectProps = {
@@ -124,7 +124,7 @@ export function Select({ value, onChange, options }: SelectProps) {
 			<Options open={isOpen}>
 				{options.map((option, index) => (
 					<Option
-						key={option.label}
+						key={option.value}
 						onClick={(e) => {
 							e.stopPropagation()
 							selectOption(option)
