@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 
-type SelectOption = {
+export type SelectOption = {
 	label: string
 	value: string | number
 }
 
-type SelectProps = {
-	options: SelectOption[]
+type MultipleSelectProps = {
+	multiple: true
+	value: SelectOption[]
+	onChange: (value: SelectOption[]) => void
+}
+
+type SingleSelectProps = {
+	multiple?: false
 	value?: SelectOption
 	onChange: (value: SelectOption | undefined) => void
 }
+
+type SelectProps = {
+	options: SelectOption[]
+} & (SingleSelectProps | MultipleSelectProps)
 
 const Container = styled.div`
 	position: relative;
@@ -29,9 +39,25 @@ const Container = styled.div`
 	}
 `
 const Value = styled.span`
+	display: flex;
 	flex-grow: 1;
+	flex-wrap: wrap;
+	gap: 5px;
 `
 const ClearBtn = styled.button`
+	background: none;
+	color: #777;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	padding: 0;
+	font-size: 1.25em;
+	&:focus,
+	&:hover {
+		color: #333;
+	}
+`
+const ClearSpan = styled.span`
 	background: none;
 	color: #777;
 	border: none;
@@ -89,15 +115,32 @@ const Option = styled.li<Pick<OptionProps, 'selected' | 'highlighted'>>`
 			: ''};
 	color: ${(props: any) => (props.highlighted ? 'white' : '')};
 `
-export function Select({ value, onChange, options }: SelectProps) {
+const OptionBadgeBtn = styled.button`
+	background: none;
+	outline: none;
+	border: 1px solid #ccc;
+	padding: 3px 2px;
+	display: flex;
+	gap: 3px;
+	align-items: center;
+`
+export function Select({ multiple, value, onChange, options }: SelectProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const [highlightedIndex, setHighlightedIndex] = useState(0)
 
 	function clearOptions() {
-		onChange(undefined)
+		multiple ? onChange([]) : onChange(undefined)
 	}
 	function selectOption(option: SelectOption) {
-		onChange(option)
+		if (multiple) {
+			if (value.includes(option)) {
+				onChange(value.filter((o) => o !== option))
+			} else {
+				onChange([...value, option])
+			}
+		} else {
+			if (option !== value) onChange(option)
+		}
 	}
 
 	useEffect(() => {
@@ -110,7 +153,22 @@ export function Select({ value, onChange, options }: SelectProps) {
 			onBlur={() => setIsOpen(false)}
 			onClick={() => setIsOpen((prev) => !prev)}
 		>
-			<Value>{value?.label}</Value>
+			<Value>
+				{multiple
+					? value.map((v) => (
+							<OptionBadgeBtn
+								key={v.value}
+								onClick={(e) => {
+									e.stopPropagation()
+									selectOption(v)
+								}}
+							>
+								{v.label}
+								<ClearSpan>&times;</ClearSpan>
+							</OptionBadgeBtn>
+					  ))
+					: value?.label}
+			</Value>
 			<ClearBtn
 				onClick={(e) => {
 					e.stopPropagation()
@@ -131,7 +189,7 @@ export function Select({ value, onChange, options }: SelectProps) {
 							setIsOpen(false)
 						}}
 						onMouseEnter={() => setHighlightedIndex(index)}
-						selected={option === value}
+						selected={multiple ? value.includes(option) : option === value}
 						highlighted={index === highlightedIndex}
 					>
 						{option.label}
