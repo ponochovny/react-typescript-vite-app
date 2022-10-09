@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 
 type SelectOption = {
@@ -57,6 +57,10 @@ const Caret = styled.div`
 type OptionsProps = {
 	open: boolean
 }
+type OptionProps = {
+	selected: boolean
+	highlighted: boolean
+}
 const Options = styled.ul<Pick<OptionsProps, 'open'>>`
 	position: absolute;
 	margin: 0;
@@ -73,21 +77,21 @@ const Options = styled.ul<Pick<OptionsProps, 'open'>>`
 	background-color: #fff;
 	z-index: 100;
 `
-const Option = styled.li`
+const Option = styled.li<Pick<OptionProps, 'selected' | 'highlighted'>>`
 	padding: 0.25em 0.5em;
 	cursor: pointer;
 
-	&.highlighted {
-		background-color: hsl(200, 100%, 50%);
-		color: white;
-	}
-
-	&.selected {
-		background-color: hsl(200, 100%, 70%);
-	}
+	background-color: ${(props: any) =>
+		props.highlighted
+			? 'hsl(200, 100%, 50%)'
+			: props.selected
+			? 'hsl(200, 100%, 70%)'
+			: ''};
+	color: ${(props: any) => (props.highlighted ? 'white' : '')};
 `
 export function Select({ value, onChange, options }: SelectProps) {
 	const [isOpen, setIsOpen] = useState(false)
+	const [highlightedIndex, setHighlightedIndex] = useState(0)
 
 	function clearOptions() {
 		onChange(undefined)
@@ -95,6 +99,10 @@ export function Select({ value, onChange, options }: SelectProps) {
 	function selectOption(option: SelectOption) {
 		onChange(option)
 	}
+
+	useEffect(() => {
+		!isOpen && setHighlightedIndex(0)
+	}, [isOpen])
 
 	return (
 		<Container
@@ -114,7 +122,7 @@ export function Select({ value, onChange, options }: SelectProps) {
 			<Divider></Divider>
 			<Caret></Caret>
 			<Options open={isOpen}>
-				{options.map((option) => (
+				{options.map((option, index) => (
 					<Option
 						key={option.label}
 						onClick={(e) => {
@@ -122,6 +130,9 @@ export function Select({ value, onChange, options }: SelectProps) {
 							selectOption(option)
 							setIsOpen(false)
 						}}
+						onMouseEnter={() => setHighlightedIndex(index)}
+						selected={option === value}
+						highlighted={index === highlightedIndex}
 					>
 						{option.label}
 					</Option>
