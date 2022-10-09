@@ -116,13 +116,30 @@ const Option = styled.li<Pick<OptionProps, 'selected' | 'highlighted'>>`
 	color: ${(props: any) => (props.highlighted ? 'white' : '')};
 `
 const OptionBadgeBtn = styled.button`
+	display: flex;
+	align-items: center;
+	gap: 0.25em;
+
+	border: 1px solid #777;
+	border-radius: 0.25em;
+	padding: 0.15em 0.25em;
+
+	cursor: pointer;
 	background: none;
 	outline: none;
-	border: 1px solid #ccc;
-	padding: 3px 2px;
-	display: flex;
-	gap: 3px;
-	align-items: center;
+
+	&:hover,
+	&:focus {
+		background-color: hsl(0, 100%, 90%);
+		border-color: hsl(0, 100%, 50%);
+		& > ${ClearSpan} {
+			color: hsl(0, 100%, 50%);
+		}
+	}
+	& > ${ClearSpan} {
+		font-size: 1.25em;
+		color: #777;
+	}
 `
 export function Select({ multiple, value, onChange, options }: SelectProps) {
 	const [isOpen, setIsOpen] = useState(false)
